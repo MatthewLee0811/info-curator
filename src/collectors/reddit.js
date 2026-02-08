@@ -1,26 +1,55 @@
-// reddit.js - Reddit API 수집기 (snoowrap 사용)
-// 버전: 1.0.0 | 수정일: 2026-02-08
-const Snoowrap = require('snoowrap');
+// reddit.js - Reddit 공개 JSON 엔드포인트 수집기 (API 키 불필요)
+// 버전: 1.1.0 | 수정일: 2026-02-08
+const axios = require('axios');
 const logger = require('../utils/logger');
 const config = require('../config');
 
-let redditClient = null;
+const USER_AGENT = 'info-curator/1.0.0';
+const REQUEST_DELAY = 2000; // 요청 간 2초 대기 (rate limit 방지)
 
 /**
- * Reddit 클라이언트 초기화
+ * Reddit 공개 .json 엔드포인트로 서브레딧 검색
+ * 예: https://www.reddit.com/r/artificial/search.json?q=AI&restrict_sr=on&t=day&limit=50
  */
-function getClient() {
-  if (!redditClient) {
-    redditClient = new Snoowrap({
-      userAgent: 'info-curator/1.0.0',
-      clientId: config.env.redditClientId,
-      clientSecret: config.env.redditClientSecret,
-      username: config.env.redditUsername,
-      password: config.env.redditPassword
-    });
-    redditClient.config({ requestDelay: 1000, continueAfterRatelimitError: true });
-  }
-  return redditClient;
+async function searchSubreddit(subreddit, keyword, timeFilter, limit) {
+  const url = `https://www.reddit.com/r/${subreddit}/search.json`;
+  const response = await axios.get(url, {
+    params: {
+      q: keyword,
+      restrict_sr: 'on',
+      t: timeFilter,
+      sort: 'relevance',
+      limit: limit
+    },
+    headers: { 'User-Agent': USER_AGENT },
+    timeout: 10000
+  });
+
+  const posts = response.data?.data?.children || [];
+  return posts.map(child => {
+    const post = child.data;
+    return {
+      id: `reddit_${post.id}`,
+      title: post.title || '',
+      url: post.url || `https://reddit.com${post.permalink}`,
+      permalink: `https://reddit.com${post.permalink}`,
+      score: post.score || 0,
+      numComments: post.num_comments || 0,
+      subreddit: post.subreddit_name_prefixed || `r/${subreddit}`,
+      createdAt: new Date(post.created_utc * 1000).toISOString(),
+      selftext: (post.selftext || '').substring(0, 500),
+      author: post.author || '',
+      source: 'reddit',
+      matchedKeyword: keyword
+    };
+  });
+}
+
+/**
+ * 요청 간 딜레이
+ */
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
@@ -32,44 +61,18 @@ async function collectReddit() {
   const keywords = config.keywords;
   const allArticles = [];
 
-  let client;
-  try {
-    client = getClient();
-  } catch (error) {
-    logger.error(`[Reddit] 클라이언트 초기화 실패: ${error.message}`);
-    return [];
-  }
-
   for (const subreddit of subreddits) {
     for (const keyword of keywords) {
       try {
-        const results = await client.getSubreddit(subreddit).search({
-          query: keyword,
-          time: timeFilter,
-          sort: 'relevance',
-          limit: limit
-        });
+        const posts = await searchSubreddit(subreddit, keyword, timeFilter, limit);
+        allArticles.push(...posts);
+        logger.info(`[Reddit] r/${subreddit} 키워드 "${keyword}": ${posts.length}건 수집`);
 
-        for (const post of results) {
-          allArticles.push({
-            id: `reddit_${post.id}`,
-            title: post.title || '',
-            url: post.url || `https://reddit.com${post.permalink}`,
-            permalink: `https://reddit.com${post.permalink}`,
-            score: post.score || 0,
-            numComments: post.num_comments || 0,
-            subreddit: post.subreddit_name_prefixed || `r/${subreddit}`,
-            createdAt: new Date(post.created_utc * 1000).toISOString(),
-            selftext: (post.selftext || '').substring(0, 500),
-            author: post.author ? post.author.name : '',
-            source: 'reddit',
-            matchedKeyword: keyword
-          });
-        }
-
-        logger.info(`[Reddit] r/${subreddit} 키워드 "${keyword}": ${results.length}건 수집`);
+        // rate limit 방지 대기
+        await delay(REQUEST_DELAY);
       } catch (error) {
         logger.error(`[Reddit] r/${subreddit} 키워드 "${keyword}" 수집 실패: ${error.message}`);
+        await delay(REQUEST_DELAY);
       }
     }
   }

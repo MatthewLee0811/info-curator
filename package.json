@@ -23,7 +23,6 @@
     "node-cron": "^4.2.1",
     "node-telegram-bot-api": "^0.67.0",
     "openai": "^6.18.0",
-    "snoowrap": "^1.23.0",
     "winston": "^3.19.0"
   }
 }

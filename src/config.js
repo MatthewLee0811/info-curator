@@ -7,12 +7,8 @@ dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const defaultConfig = require(path.join(__dirname, '..', 'config', 'default.json'));
 
-// 필수 환경변수 검증
+// 필수 환경변수 검증 (Reddit는 공개 .json 엔드포인트 사용으로 키 불필요)
 const requiredEnvVars = [
-  'REDDIT_CLIENT_ID',
-  'REDDIT_CLIENT_SECRET',
-  'REDDIT_USERNAME',
-  'REDDIT_PASSWORD',
   'OPENAI_API_KEY',
   'TELEGRAM_BOT_TOKEN',
   'TELEGRAM_CHAT_ID'
@@ -30,10 +26,6 @@ function validateEnv() {
 const config = {
   // 환경변수 (process.env에서 참조)
   env: {
-    redditClientId: process.env.REDDIT_CLIENT_ID,
-    redditClientSecret: process.env.REDDIT_CLIENT_SECRET,
-    redditUsername: process.env.REDDIT_USERNAME,
-    redditPassword: process.env.REDDIT_PASSWORD,
     openaiApiKey: process.env.OPENAI_API_KEY,
     telegramBotToken: process.env.TELEGRAM_BOT_TOKEN,
     telegramChatId: process.env.TELEGRAM_CHAT_ID,
