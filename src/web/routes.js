@@ -1,9 +1,10 @@
 // routes.js - Express 라우터
-// 버전: 1.0.0 | 수정일: 2026-02-08
+// 버전: 1.1.0 | 수정일: 2026-02-09
 const express = require('express');
 const router = express.Router();
 const { getLatestCuration, getCurationsByDate, getWeeklyArticles } = require('../store/storage');
 const { runPipeline, getStatus } = require('../pipeline');
+const config = require('../config');
 const logger = require('../utils/logger');
 
 // GET / - 메인 페이지 (최신 큐레이션)
@@ -60,6 +61,32 @@ router.post('/api/refresh', async (req, res) => {
 // GET /api/status - 파이프라인 상태
 router.get('/api/status', (req, res) => {
   res.json(getStatus());
+});
+
+// GET /settings - 키워드 설정 페이지
+router.get('/settings', (req, res) => {
+  res.render('settings', {
+    keywords: config.getKeywords(),
+    title: 'Info Curator - 설정'
+  });
+});
+
+// POST /api/keywords - 키워드 목록 업데이트
+router.post('/api/keywords', (req, res) => {
+  try {
+    const { keywords } = req.body;
+    if (!Array.isArray(keywords)) {
+      return res.status(400).json({ success: false, message: 'keywords는 배열이어야 합니다.' });
+    }
+    // 빈 문자열 제거 및 중복 제거
+    const cleaned = [...new Set(keywords.map(k => k.trim()).filter(k => k.length > 0))];
+    config.setKeywords(cleaned);
+    logger.info(`[web] 키워드 업데이트: ${cleaned.join(', ')}`);
+    res.json({ success: true, keywords: cleaned });
+  } catch (error) {
+    logger.error(`[web] 키워드 저장 오류: ${error.message}`);
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
 module.exports = router;

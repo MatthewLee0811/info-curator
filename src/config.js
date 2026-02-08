@@ -1,11 +1,13 @@
 // config.js - 설정 로드 모듈
-// 버전: 1.0.0 | 수정일: 2026-02-08
+// 버전: 1.1.0 | 수정일: 2026-02-09
+const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
-const defaultConfig = require(path.join(__dirname, '..', 'config', 'default.json'));
+const configFilePath = path.join(__dirname, '..', 'config', 'default.json');
+const defaultConfig = require(configFilePath);
 
 // 필수 환경변수 검증 (Reddit는 공개 .json 엔드포인트 사용으로 키 불필요)
 const requiredEnvVars = [
@@ -44,7 +46,18 @@ const config = {
     logs: path.join(__dirname, '..', 'logs')
   },
   // 환경변수 검증 함수
-  validateEnv
+  validateEnv,
+  // 키워드 동적 관리 함수
+  getKeywords() {
+    return config.keywords;
+  },
+  setKeywords(keywords) {
+    config.keywords = keywords;
+    const raw = fs.readFileSync(configFilePath, 'utf-8');
+    const json = JSON.parse(raw);
+    json.keywords = keywords;
+    fs.writeFileSync(configFilePath, JSON.stringify(json, null, 2) + '\n', 'utf-8');
+  }
 };
 
 module.exports = config;
