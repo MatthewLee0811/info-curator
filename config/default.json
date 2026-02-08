@@ -1,0 +1,21 @@
+{
+  "keywords": ["AI", "vibe coding", "artificial intelligence", "LLM", "GPT", "machine learning"],
+  "reddit": {
+    "subreddits": ["artificial", "MachineLearning", "technology", "LocalLLaMA", "ChatGPT"],
+    "timeFilter": "day",
+    "limit": 50
+  },
+  "hackernews": {
+    "tags": "story",
+    "hitsPerPage": 50
+  },
+  "scoring": {
+    "threshold": 40,
+    "maxArticles": 15
+  },
+  "schedule": {
+    "morning": "0 8 * * *",
+    "evening": "0 17 * * *",
+    "timezone": "Asia/Seoul"
+  }
+}

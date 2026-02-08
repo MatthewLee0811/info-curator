@@ -1,0 +1,70 @@
+<%- include('header') %>
+
+<% if (curation) { %>
+  <div class="mb-4 flex items-center justify-between">
+    <div>
+      <span class="text-sm text-gray-500">마지막 업데이트: <%= new Date(curation.createdAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }) %></span>
+      <span class="ml-3 text-sm text-gray-500"><%= curation.totalCollected %>건 중 <%= curation.articles.length %>건 엄선</span>
+    </div>
+  </div>
+
+  <% if (curation.weeklySummary) { %>
+  <div class="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-5 mb-6">
+    <h2 class="text-lg font-bold text-purple-800 mb-2">이번 주 요약</h2>
+    <div class="text-sm text-gray-700 whitespace-pre-line"><%= curation.weeklySummary %></div>
+  </div>
+  <% } %>
+
+  <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <% curation.articles.forEach(function(article, idx) { %>
+    <% var scoreClass = article.scores.total >= 70 ? 'score-high' : (article.scores.total >= 50 ? 'score-medium' : 'score-low'); %>
+    <% var sourceLabel = article.source === 'reddit' ? 'Reddit' : 'HN'; %>
+    <% var sourceClass = article.source === 'reddit' ? 'source-reddit' : 'source-hackernews'; %>
+    <div class="bg-white rounded-xl shadow-sm border hover:shadow-md transition p-4 <%= scoreClass %>">
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <a href="<%= article.url %>" target="_blank" rel="noopener"
+          class="text-sm font-semibold text-gray-800 hover:text-blue-600 line-clamp-2 flex-1">
+          <%= article.title %>
+        </a>
+        <span class="shrink-0 text-xs font-bold bg-gray-100 text-gray-700 px-2 py-1 rounded">
+          <%= article.scores.total %>점
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-xs text-white px-2 py-0.5 rounded <%= sourceClass %>"><%= sourceLabel %></span>
+        <% if (article.subreddit) { %>
+        <span class="text-xs text-gray-500"><%= article.subreddit %></span>
+        <% } %>
+        <% if (article.matchedKeyword) { %>
+        <span class="text-xs text-gray-400"><%= article.matchedKeyword %></span>
+        <% } %>
+      </div>
+
+      <% if (article.summary) { %>
+      <div class="summary-text text-sm text-gray-600" id="summary-<%= idx %>">
+        <%= article.summary %>
+      </div>
+      <button onclick="toggleSummary(<%= idx %>)" class="text-xs text-blue-500 mt-1 hover:underline">더보기</button>
+      <% } %>
+
+      <div class="flex items-center gap-3 mt-3 text-xs text-gray-400">
+        <span>👍 <%= article.points || article.score || 0 %></span>
+        <span>💬 <%= article.numComments || 0 %></span>
+        <% if (article.permalink) { %>
+        <a href="<%= article.permalink %>" target="_blank" class="hover:text-blue-500">토론 보기</a>
+        <% } %>
+      </div>
+    </div>
+    <% }); %>
+  </div>
+
+<% } else { %>
+  <div class="text-center py-20">
+    <div class="text-6xl mb-4">📭</div>
+    <h2 class="text-xl font-bold text-gray-600 mb-2">아직 큐레이션된 정보가 없습니다</h2>
+    <p class="text-gray-500 mb-4">상단의 "지금 가져오기" 버튼을 눌러 첫 큐레이션을 시작하세요.</p>
+  </div>
+<% } %>
+
+<%- include('footer') %>
