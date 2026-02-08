@@ -1,12 +1,26 @@
 {
-  "keywords": ["AI", "vibe coding", "artificial intelligence", "LLM", "GPT", "machine learning"],
+  "keywords": [
+    "AI",
+    "vibe coding",
+    "claude"
+  ],
   "reddit": {
-    "subreddits": ["artificial", "MachineLearning", "technology", "LocalLLaMA", "ChatGPT"],
+    "subreddits": [
+      "artificial",
+      "MachineLearning",
+      "technology",
+      "LocalLLaMA",
+      "ChatGPT",
+      "singularity",
+      "OpenAI",
+      "ClaudeAI",
+      "coding"
+    ],
     "timeFilter": "day",
     "limit": 50
   },
   "hackernews": {
-    "tags": "story",
+    "tags": "(story,show_hn)",
     "hitsPerPage": 50
   },
   "scoring": {
