@@ -35,8 +35,8 @@
     "maxResults": 20
   },
   "scoring": {
-    "threshold": 40,
-    "maxArticles": 15
+    "threshold": 55,
+    "maxArticles": 5
   },
   "schedule": {
     "morning": "0 8 * * *",
