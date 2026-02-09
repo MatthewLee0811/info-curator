@@ -1,5 +1,19 @@
 # 작업 이력
 
+## 2026-02-09: 스코어링 소스 다양성 개선
+- `src/processor/scorer.js` v1.3.0: Engagement 정규화 + 소스 다양성 보장
+  - 소스별 인기 기준선(ENGAGEMENT_BASELINE) 도입, 상대적 인기도로 점수 산출
+  - ArXiv는 engagement 개념이 없으므로 기본 10점 부여
+  - 최종 선정 시 같은 소스 최대 3건 제한으로 다양성 확보
+
+## 2026-02-09: GPT 요약 마크다운 구조화
+- `src/processor/summarizer.js` v1.2.0: 요약 출력을 구조화된 마크다운 형식으로 변경
+  - 📌 핵심 요약 / ⚡ 주요 포인트 / 💬 반응 및 의의 3단 구조
+  - 기사 유형별(비교/신기술/이슈) 구체적 요약 기준 추가
+  - selftext 입력: 300자 → 800자, max_tokens: 1500 → 3000, 배치: 5 → 3
+- `src/web/views/header.ejs`: marked.js CDN 추가, 요약 영역 스타일 보강
+- `src/web/views/index.ejs`: 요약을 marked.js로 마크다운 → HTML 렌더링
+
 ## 2026-02-09: 텔레그램 알림 버전 표시 + 웹 UI 동적 버전 표시
 - `src/notifier/telegram.js` v1.1.0: 알림 메시지 하단에 앱 버전(🏷 vX.X.X) 표시 추가
 - `src/index.js` v1.1.0: res.locals.appVersion 미들웨어 추가 (모든 뷰에 버전 전달)

@@ -7,10 +7,10 @@
 function toggleSummary(idx) {
   var el = document.getElementById('summary-' + idx);
   if (!el) return;
-  el.classList.toggle('expanded');
+  el.classList.toggle('collapsed');
   var btn = el.nextElementSibling;
   if (btn) {
-    btn.textContent = el.classList.contains('expanded') ? '접기' : '더보기';
+    btn.textContent = el.classList.contains('collapsed') ? '더보기' : '접기';
   }
 }
 

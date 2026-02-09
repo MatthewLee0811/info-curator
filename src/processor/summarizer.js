@@ -1,5 +1,5 @@
 // summarizer.js - GPT-4o-mini 기반 요약/번역 모듈
-// 버전: 1.0.0 | 수정일: 2026-02-08
+// 버전: 1.2.0 | 수정일: 2026-02-09
 const OpenAI = require('openai');
 const logger = require('../utils/logger');
 const config = require('../config');
@@ -22,7 +22,7 @@ async function summarizeArticles(articles) {
   if (!articles || articles.length === 0) return [];
 
   const client = getClient();
-  const batchSize = 5;
+  const batchSize = 3;
   const results = [];
 
   for (let i = 0; i < articles.length; i += batchSize) {
@@ -53,7 +53,7 @@ async function summarizeArticles(articles) {
  */
 async function summarizeBatch(client, batch, retryCount = 0) {
   const articlesText = batch.map((a, idx) => {
-    const text = a.selftext ? `\n내용: ${a.selftext.substring(0, 300)}` : '';
+    const text = a.selftext ? `\n내용: ${a.selftext.substring(0, 800)}` : '';
     return `[${idx + 1}] 제목: ${a.title}${text}\n출처: ${a.source} | 점수: ${a.scores.total}`;
   }).join('\n\n');
 
@@ -63,15 +63,33 @@ async function summarizeBatch(client, batch, retryCount = 0) {
       messages: [
         {
           role: 'system',
-          content: '당신은 기술 뉴스 큐레이터입니다. 각 기사를 한국어로 2-3문장으로 요약해주세요. 핵심 내용과 의미를 간결하게 전달하세요.'
+          content: `당신은 기술 뉴스 큐레이터입니다. 각 기사를 한국어로 마크다운 형식으로 요약해주세요.
+
+반드시 아래 형식을 따르세요:
+**📌 핵심 요약**
+한 줄로 이 기사가 무엇에 대한 것인지 설명
+
+**⚡ 주요 포인트**
+• 포인트 1
+• 포인트 2
+• 포인트 3
+
+**💬 반응 및 의의**
+커뮤니티 반응, 업계 영향, 또는 이 기사가 중요한 이유를 1-2줄로 설명
+
+기사 유형별 주요 포인트 작성 기준:
+- 비교 기사: 각각의 장단점을 구체적으로 대비하여 작성
+- 신기술 기사: 어떤 기술인지, 기존 대비 차이점, 활용 분야
+- 이슈/트렌드 기사: 등장 배경, 핵심 논점, 영향
+- 숫자나 벤치마크가 있으면 반드시 포함`
         },
         {
           role: 'user',
-          content: `다음 ${batch.length}개 기사를 각각 한국어로 2-3문장으로 요약해주세요. 반드시 JSON 배열로만 응답해주세요. 형식: ["요약1", "요약2", ...]\n\n${articlesText}`
+          content: `다음 ${batch.length}개 기사를 각각 위 마크다운 형식으로 요약해주세요. 반드시 JSON 배열로만 응답해주세요. 형식: ["마크다운요약1", "마크다운요약2", ...]\n\n${articlesText}`
         }
       ],
       temperature: 0.3,
-      max_tokens: 1500
+      max_tokens: 3000
     });
 
     const content = response.choices[0].message.content.trim();

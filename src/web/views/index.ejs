@@ -43,9 +43,17 @@
 
       <% if (article.summary) { %>
       <div class="summary-text text-sm text-gray-600" id="summary-<%= idx %>">
-        <%= article.summary %>
+        <%- article.summary %>
       </div>
-      <button onclick="toggleSummary(<%= idx %>)" class="text-xs text-blue-500 mt-1 hover:underline">더보기</button>
+      <button onclick="toggleSummary(<%= idx %>)" class="text-xs text-blue-500 mt-1 hover:underline">접기</button>
+      <script>
+        (function() {
+          var el = document.getElementById('summary-<%= idx %>');
+          if (el && typeof marked !== 'undefined') {
+            el.innerHTML = marked.parse(el.textContent);
+          }
+        })();
+      </script>
       <% } %>
 
       <div class="flex items-center gap-3 mt-3 text-xs text-gray-400">

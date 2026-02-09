@@ -1,5 +1,5 @@
 // scorer.js - 교차검증 + 점수화 모듈
-// 버전: 1.0.0 | 수정일: 2026-02-08
+// 버전: 1.3.0 | 수정일: 2026-02-09
 const logger = require('../utils/logger');
 const config = require('../config');
 
@@ -22,17 +22,35 @@ const SUBREDDIT_TRUST = {
   'r/ChatGPT': 13
 };
 
+// 소스별 인기 기준선 (이 수치면 "인기글" 수준)
+const ENGAGEMENT_BASELINE = {
+  hackernews: { points: 200, comments: 100 },
+  reddit: { points: 500, comments: 100 },
+  lobsters: { points: 20, comments: 15 },
+  devto: { points: 80, comments: 20 },
+  arxiv: { points: 0, comments: 0 },
+  bluesky: { points: 50, comments: 20 }
+};
+
 /**
  * Engagement 점수 산출 (30점 만점)
- * 업보트/포인트 + 댓글 수를 정규화
+ * 소스별 기준선 대비 상대적 인기도로 정규화
  */
 function calcEngagementScore(article) {
   const points = article.points || article.score || 0;
   const comments = article.numComments || 0;
 
-  // 로그 스케일로 정규화 (폭발적인 인기 게시물 영향 완화)
-  const pointScore = Math.min(Math.log10(Math.max(points, 1) + 1) * 6, 20);
-  const commentScore = Math.min(Math.log10(Math.max(comments, 1) + 1) * 5, 10);
+  // ArXiv는 engagement 개념이 없으므로 기본 10점 부여
+  if (article.source === 'arxiv') return 10;
+
+  const baseline = ENGAGEMENT_BASELINE[article.source] || { points: 100, comments: 50 };
+
+  // 기준선 대비 비율로 점수 산출 (기준선 = 20점)
+  const pointRatio = baseline.points > 0 ? points / baseline.points : 0;
+  const commentRatio = baseline.comments > 0 ? comments / baseline.comments : 0;
+
+  const pointScore = Math.min(pointRatio * 20, 20);
+  const commentScore = Math.min(commentRatio * 10, 10);
 
   return Math.min(pointScore + commentScore, 30);
 }
@@ -160,11 +178,23 @@ function scoreArticles(articles) {
     };
   });
 
-  // 임계값 필터링 + 점수 내림차순 정렬 + 상위 N개
-  const filtered = scored
+  // 임계값 필터링 + 점수 내림차순 정렬
+  const passed = scored
     .filter(a => a.scores.total >= threshold)
-    .sort((a, b) => b.scores.total - a.scores.total)
-    .slice(0, maxArticles);
+    .sort((a, b) => b.scores.total - a.scores.total);
+
+  // 소스 다양성 보장: 같은 소스 최대 3건
+  const maxPerSource = 3;
+  const sourceCounts = {};
+  const filtered = [];
+  for (const article of passed) {
+    const src = article.source;
+    sourceCounts[src] = (sourceCounts[src] || 0) + 1;
+    if (sourceCounts[src] <= maxPerSource) {
+      filtered.push(article);
+    }
+    if (filtered.length >= maxArticles) break;
+  }
 
   logger.info(`[scorer] ${articles.length}건 중 ${filtered.length}건 통과 (임계값: ${threshold})`);
   return filtered;

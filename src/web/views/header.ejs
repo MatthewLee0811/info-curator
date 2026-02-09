@@ -5,14 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title %></title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     .source-reddit { background-color: #FF4500; }
     .source-hackernews { background-color: #FF6600; }
     .score-high { border-left: 4px solid #10B981; }
     .score-medium { border-left: 4px solid #F59E0B; }
     .score-low { border-left: 4px solid #6B7280; }
-    .summary-text { max-height: 4.5em; overflow: hidden; transition: max-height 0.3s ease; }
-    .summary-text.expanded { max-height: none; }
+    .summary-text { transition: max-height 0.3s ease; }
+    .summary-text.collapsed { max-height: 6em; overflow: hidden; }
+    .summary-text p { margin: 0.25rem 0; }
+    .summary-text ul { margin: 0.25rem 0; padding-left: 0; list-style: none; }
+    .summary-text li { margin: 0.1rem 0; }
     .spinner { animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>

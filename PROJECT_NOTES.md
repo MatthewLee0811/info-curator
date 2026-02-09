@@ -61,8 +61,8 @@ public/js/main.js        - 프론트엔드 JS
 - `OPENAI_API_KEY` - GPT 요약/번역 (필수)
 - `TELEGRAM_BOT_TOKEN` - 텔레그램 알림 (필수)
 - `TELEGRAM_CHAT_ID` - 알림 받을 채팅방 (필수)
-- `PORT` - 웹 서버 포트 (선택, 기본값 3000)
-- `SITE_URL` - 텔레그램 알림에 표시될 URL (선택, 기본값 http://localhost:3000)
+- `PORT` - 웹 서버 포트 (선택, 기본값 4000)
+- `SITE_URL` - 텔레그램 알림에 표시될 URL (선택, 기본값 http://localhost:4000)
 
 ## 서버 운영
 - 시작: `nohup npm start &`
