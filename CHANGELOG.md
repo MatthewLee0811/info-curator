@@ -1,11 +1,20 @@
 # 작업 이력
 
+## 2026-02-09: 텔레그램 알림 버전 표시 + 웹 UI 동적 버전 표시
+- `src/notifier/telegram.js` v1.1.0: 알림 메시지 하단에 앱 버전(🏷 vX.X.X) 표시 추가
+- `src/index.js` v1.1.0: res.locals.appVersion 미들웨어 추가 (모든 뷰에 버전 전달)
+- `src/web/views/footer.ejs`: 하드코딩 v1.0.0 → package.json 버전 동적 표시
+- `package.json`: 버전 1.0.0 → 1.2.0 업데이트
+
 ## 2026-02-09: Bluesky 수집기 추가 + Reddit 주석 처리
 - `src/collectors/bluesky.js` v1.0.0 신규: Bluesky AT Protocol 공개 API 수집기 (API 키 불필요, 키워드 기반 검색)
 - `src/pipeline.js` v1.2.0: Reddit 수집 주석 처리 (클라우드 IP 차단 + 개인 API 발급 중단), Bluesky 추가
 - `config/default.json`: bluesky 설정 추가 (limit:30, sort:top)
 - `src/config.js` v1.3.0: bluesky 설정 로드 추가
 - `src/processor/scorer.js` v1.2.0: SOURCE_TRUST에 bluesky(15) 추가
+
+## 2026-02-09: 스코어링 기준 상향
+- `config/default.json`: threshold 40→55, maxArticles 15→5 (API 비용 절감)
 
 ## 2026-02-09: 수집 소스 3종 추가 (Lobste.rs, Dev.to, ArXiv)
 - `src/collectors/lobsters.js` v1.0.0 신규: Lobste.rs JSON API 수집기 (API 키 불필요, 최신글 페이지 순회 + 키워드 필터링)
