@@ -34,6 +34,10 @@
     "categories": ["cs.AI", "cs.CL", "cs.LG", "cs.CV"],
     "maxResults": 20
   },
+  "bluesky": {
+    "limit": 30,
+    "sort": "top"
+  },
   "scoring": {
     "threshold": 55,
     "maxArticles": 5

@@ -1,11 +1,12 @@
 // pipeline.js - 수집→점수화→요약→저장→알림 파이프라인 오케스트레이션
-// 버전: 1.1.0 | 수정일: 2026-02-09
+// 버전: 1.2.0 | 수정일: 2026-02-09
 const logger = require('./utils/logger');
 const { collectHackerNews } = require('./collectors/hackernews');
-const { collectReddit } = require('./collectors/reddit');
+// const { collectReddit } = require('./collectors/reddit'); // Reddit: 클라우드 IP 차단 (개인 API 발급 중단), 로컬 전용
 const { collectLobsters } = require('./collectors/lobsters');
 const { collectDevTo } = require('./collectors/devto');
 const { collectArxiv } = require('./collectors/arxiv');
+const { collectBluesky } = require('./collectors/bluesky');
 const { scoreArticles } = require('./processor/scorer');
 const { summarizeArticles, generateWeeklySummary } = require('./processor/summarizer');
 const { saveCuration, getWeeklyArticles } = require('./store/storage');
@@ -41,13 +42,14 @@ async function runPipeline(options = {}) {
 
     // 1단계: 데이터 수집 (5개 소스 병렬 실행)
     logger.info('[pipeline] 1단계: 데이터 수집');
-    const sourceNames = ['HN', 'Reddit', 'Lobsters', 'DevTo', 'ArXiv'];
+    const sourceNames = ['HN', /* 'Reddit', */ 'Lobsters', 'DevTo', 'ArXiv', 'Bluesky'];
     const results = await Promise.allSettled([
       collectHackerNews(),
-      collectReddit(),
+      // collectReddit(), // Reddit: 클라우드 IP 차단 (개인 API 발급 중단), 로컬 전용
       collectLobsters(),
       collectDevTo(),
-      collectArxiv()
+      collectArxiv(),
+      collectBluesky()
     ]);
 
     const allArticles = [];

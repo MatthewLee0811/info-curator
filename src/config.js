@@ -41,6 +41,7 @@ const config = {
   lobsters: defaultConfig.lobsters,
   devto: defaultConfig.devto,
   arxiv: defaultConfig.arxiv,
+  bluesky: defaultConfig.bluesky,
   scoring: defaultConfig.scoring,
   schedule: defaultConfig.schedule,
   // 경로 설정
