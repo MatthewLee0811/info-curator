@@ -38,6 +38,9 @@ const config = {
   keywords: defaultConfig.keywords,
   reddit: defaultConfig.reddit,
   hackernews: defaultConfig.hackernews,
+  lobsters: defaultConfig.lobsters,
+  devto: defaultConfig.devto,
+  arxiv: defaultConfig.arxiv,
   scoring: defaultConfig.scoring,
   schedule: defaultConfig.schedule,
   // 경로 설정

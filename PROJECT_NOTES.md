@@ -1,7 +1,7 @@
 # Info Curator 프로젝트 메모
 
 ## 프로젝트 개요
-- AI 키워드 기반 정보 큐레이션 시스템 (Reddit + Hacker News)
+- AI 키워드 기반 정보 큐레이션 시스템 (Reddit + Hacker News + Lobste.rs + Dev.to + ArXiv)
 - 수집 → 점수화 → GPT 요약/번역 → 웹 대시보드 + 텔레그램 알림
 - 스택: Node.js, Express, EJS, Tailwind(CDN), node-cron
 - 포트: 4000 (`.env`의 PORT 설정)
@@ -17,6 +17,9 @@ src/web/routes.js        - Express 라우터 (/, /weekly, /history, /settings, /
 src/web/views/*.ejs      - EJS 뷰 (header, footer, index, weekly, settings)
 src/collectors/reddit.js - Reddit 공개 .json 엔드포인트 수집기 (API 키 불필요)
 src/collectors/hackernews.js - HN Algolia API 수집기
+src/collectors/lobsters.js   - Lobste.rs JSON API 수집기
+src/collectors/devto.js      - Dev.to REST API 수집기
+src/collectors/arxiv.js      - ArXiv API 수집기 (XML)
 src/processor/scorer.js  - 점수화
 src/processor/summarizer.js - GPT 요약
 src/notifier/telegram.js - 텔레그램 알림
@@ -32,9 +35,21 @@ artificial, MachineLearning, technology, LocalLLaMA, ChatGPT, singularity, OpenA
 ### Hacker News (Algolia API)
 태그: story, show_hn
 
+### Lobste.rs (공개 JSON API)
+최신 게시물 3페이지 순회 → 키워드 필터링
+
+### Dev.to (REST API)
+키워드별 태그 검색 + 추가 태그(machinelearning, ai, llm, openai, programming)
+
+### ArXiv (공식 API, XML 응답)
+카테고리: cs.AI, cs.CL, cs.LG, cs.CV / 키워드당 최대 20건
+
 ### 수집 제한
 - Reddit: 서브레딧당 요청 limit 50, 요청 간 2초 대기, 비인증 분당 10~30회
 - HN: hitsPerPage 50, 시간당 10,000회 (넉넉)
+- Lobste.rs: rate limit 불명, 요청 간 대기 없이 순차 호출
+- Dev.to: 요청 간 1초 대기, API 키 없이 분당 30회
+- ArXiv: 요청 간 3초 대기 (공식 권장)
 
 ## 주의사항
 - `git filter-repo` 실행 시 커밋 전 변경사항이 날아감 (워킹 트리 리셋됨)

@@ -1,8 +1,11 @@
 // pipeline.js - 수집→점수화→요약→저장→알림 파이프라인 오케스트레이션
-// 버전: 1.0.0 | 수정일: 2026-02-08
+// 버전: 1.1.0 | 수정일: 2026-02-09
 const logger = require('./utils/logger');
 const { collectHackerNews } = require('./collectors/hackernews');
 const { collectReddit } = require('./collectors/reddit');
+const { collectLobsters } = require('./collectors/lobsters');
+const { collectDevTo } = require('./collectors/devto');
+const { collectArxiv } = require('./collectors/arxiv');
 const { scoreArticles } = require('./processor/scorer');
 const { summarizeArticles, generateWeeklySummary } = require('./processor/summarizer');
 const { saveCuration, getWeeklyArticles } = require('./store/storage');
@@ -36,24 +39,25 @@ async function runPipeline(options = {}) {
   try {
     logger.info('[pipeline] ===== 파이프라인 시작 =====');
 
-    // 1단계: 데이터 수집 (Reddit + HN 병렬 실행)
+    // 1단계: 데이터 수집 (5개 소스 병렬 실행)
     logger.info('[pipeline] 1단계: 데이터 수집');
-    const [hnArticles, redditArticles] = await Promise.allSettled([
+    const sourceNames = ['HN', 'Reddit', 'Lobsters', 'DevTo', 'ArXiv'];
+    const results = await Promise.allSettled([
       collectHackerNews(),
-      collectReddit()
+      collectReddit(),
+      collectLobsters(),
+      collectDevTo(),
+      collectArxiv()
     ]);
 
-    const allArticles = [
-      ...(hnArticles.status === 'fulfilled' ? hnArticles.value : []),
-      ...(redditArticles.status === 'fulfilled' ? redditArticles.value : [])
-    ];
-
-    if (hnArticles.status === 'rejected') {
-      logger.error(`[pipeline] HN 수집 실패: ${hnArticles.reason.message}`);
-    }
-    if (redditArticles.status === 'rejected') {
-      logger.error(`[pipeline] Reddit 수집 실패: ${redditArticles.reason.message}`);
-    }
+    const allArticles = [];
+    results.forEach((result, idx) => {
+      if (result.status === 'fulfilled') {
+        allArticles.push(...result.value);
+      } else {
+        logger.error(`[pipeline] ${sourceNames[idx]} 수집 실패: ${result.reason.message}`);
+      }
+    });
 
     logger.info(`[pipeline] 총 ${allArticles.length}건 수집`);
 

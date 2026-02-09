@@ -6,7 +6,10 @@ const config = require('../config');
 // 출처별 기본 신뢰도 (20점 만점)
 const SOURCE_TRUST = {
   hackernews: 18,
-  reddit: 14
+  reddit: 14,
+  lobsters: 17,  // 초대제 커뮤니티, 기술 콘텐츠 품질 높음
+  devto: 13,     // 개발자 커뮤니티, 품질 편차 있음
+  arxiv: 19      // 학술 논문 프리프린트, 신뢰도 최상위
 };
 
 // 서브레딧별 신뢰도 보정

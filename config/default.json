@@ -23,6 +23,17 @@
     "tags": "(story,show_hn)",
     "hitsPerPage": 50
   },
+  "lobsters": {
+    "pages": 3
+  },
+  "devto": {
+    "perPage": 30,
+    "tags": ["machinelearning", "ai", "llm", "openai", "programming"]
+  },
+  "arxiv": {
+    "categories": ["cs.AI", "cs.CL", "cs.LG", "cs.CV"],
+    "maxResults": 20
+  },
   "scoring": {
     "threshold": 40,
     "maxArticles": 15
