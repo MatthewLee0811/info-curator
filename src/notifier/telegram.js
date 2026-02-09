@@ -1,5 +1,5 @@
-// telegram.js - 텔레그램 알림 모듈
-// 버전: 1.1.0 | 수정일: 2026-02-09
+// telegram.js - 텔레그램 알림 모듈 (카테고리 지원)
+// 버전: 2.0.0 | 수정일: 2026-02-09
 const TelegramBot = require('node-telegram-bot-api');
 const logger = require('../utils/logger');
 const config = require('../config');
@@ -20,8 +20,9 @@ function getBot() {
  * @param {number} selected - 엄선된 기사 수
  * @param {boolean} includeWeekly - 주간 요약 포함 여부
  * @param {string|null} errorMsg - 에러 메시지 (에러 알림용)
+ * @param {Object|null} categoryResults - 카테고리별 결과 { tech: { label, collected }, ... }
  */
-async function sendNotification(collected, selected, includeWeekly = false, errorMsg = null) {
+async function sendNotification(collected, selected, includeWeekly = false, errorMsg = null, categoryResults = null) {
   const telegramBot = getBot();
   if (!telegramBot || !config.env.telegramChatId) {
     logger.warn('[telegram] 봇 토큰 또는 채팅 ID가 설정되지 않았습니다. 알림을 건너뜁니다.');
@@ -35,7 +36,20 @@ async function sendNotification(collected, selected, includeWeekly = false, erro
   if (errorMsg) {
     message = `⚠️ 큐레이션 오류 발생 (${now})\n\n오류: ${errorMsg}\n\n🔗 대시보드: ${siteUrl}\n🏷 v${pkg.version}`;
   } else {
-    message = `📋 새 AI 큐레이션 도착! (${now})\n📊 ${collected}건 수집 → ${selected}건 엄선\n🔗 자세히 보기: ${siteUrl}\n\n🏷 v${pkg.version}`;
+    message = `📋 새 큐레이션 도착! (${now})\n📊 ${collected}건 수집 → ${selected}건 엄선`;
+
+    // 카테고리별 수집 결과 표시
+    if (categoryResults) {
+      const catLines = Object.entries(categoryResults)
+        .map(([, info]) => `  • ${info.label}: ${info.collected}건`)
+        .join('\n');
+      if (catLines) {
+        message += `\n\n📂 카테고리별 수집:\n${catLines}`;
+      }
+    }
+
+    message += `\n\n🔗 자세히 보기: ${siteUrl}\n🏷 v${pkg.version}`;
+
     if (includeWeekly) {
       message += `\n\n📅 이번 주 요약도 함께 확인하세요!\n🔗 주간 요약: ${siteUrl}/weekly`;
     }

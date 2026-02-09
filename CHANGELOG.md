@@ -1,5 +1,52 @@
 # 작업 이력
 
+## 2026-02-09: v2.1.0 코인 소스 확장 + 스코어링 개선 + 일간 병합 뷰
+- **개요**: 코인/주식 전용 소스 추가, CoinGecko 트렌딩 + DeFi Llama TVL 수집기, 스코어링 인기글 모드, 하루치 데이터 병합 + 날짜 네비게이션
+- **코인/주식 소스 변경**:
+  - crypto: HN/Bluesky 제거 → CoinDesk, CoinTelegraph, The Block, Decrypt + CoinGecko + DeFi Llama (6개)
+  - stocks: SeekingAlpha, MarketWatch, Yahoo Finance, CNBC (4개)
+- `src/collectors/coingecko.js` v1.0.0 신규: CoinGecko Trending API 수집기, excludeCoins 필터
+- `src/collectors/defillama.js` v1.0.0 신규: DeFi Llama TVL 변동 상위 프로토콜 수집기, excludeCoins 필터
+- `src/collectors/rss.js` v1.1.0: 키워드 없으면 전체 반환 (인기글 모드)
+- `src/collectors/hackernews.js` v1.2.0: 키워드 없으면 인기 스토리 수집
+- `src/collectors/lobsters.js` v1.2.0: 키워드 없으면 전체 반환
+- `src/collectors/devto.js` v1.2.0: 키워드 없으면 top 기사 수집
+- `src/processor/scorer.js` v2.1.0:
+  - 인기글 모드 (키워드 없음) 시 기본 keyword 10점 + 임계값 50% 하향
+  - 카테고리별 임계값 지원 (categoryThreshold 매개변수)
+  - 새 소스 신뢰도: coingecko(18), defillama(19), cointelegraph(16), theblock(18), decrypt(16), yahoofinance(15), cnbc(17)
+- `src/pipeline.js` v2.1.0: CoinGecko/DeFi Llama 수집기 매핑, excludeCoins 전달, 카테고리별 임계값 전달
+- `src/store/storage.js` v2.0.0: getDailyCuration(date, category) 하루치 병합 + 중복 제거, getAvailableDates()
+- `src/web/routes.js` v2.1.0: ?date= 파라미터 지원, getDailyCuration 사용, 날짜 네비게이션 데이터 전달
+- `src/web/views/index.ejs` v2.2.0: 날짜 네비게이션 UI (← 이전 | 날짜 | 다음 →), 수집 시각 표시, 빈 결과 메시지
+- `src/web/views/header.ejs`: CoinGecko/DeFi Llama 소스 색상 추가
+- `config/default.json`: crypto에 threshold(28), excludeCoins 추가, Yahoo Finance URL 수정
+- `package.json`: 2.0.0 → 2.1.0
+
+## 2026-02-09: v2.0.0 카테고리 시스템 확장 (tech / crypto / stocks)
+- **개요**: AI/기술 외에 코인, 미국주식 카테고리 추가. 카테고리별 키워드와 수집 소스가 완전히 분리됨.
+- `config/default.json`: flat 구조 → `categories` + `sources` 계층 구조로 변경
+  - tech: HN, Lobsters, DevTo, ArXiv, Bluesky
+  - crypto: CoinDesk(RSS), HN, Bluesky
+  - stocks: SeekingAlpha(RSS), MarketWatch(RSS), HN
+- `src/config.js` v2.0.0: 카테고리 구조 로드, getKeywords(category), setKeywords(category, keywords), getSourcesForCategory(), getSourceConfig() 추가. 하위 호환 getter 유지.
+- `src/collectors/rss.js` v1.0.0 신규: rss-parser 기반 범용 RSS 수집기 (CoinDesk, SeekingAlpha, MarketWatch 3개 소스 처리)
+- `src/collectors/hackernews.js` v1.1.0: overrideKeywords 매개변수 추가
+- `src/collectors/bluesky.js` v1.1.0: overrideKeywords 매개변수 추가
+- `src/collectors/lobsters.js` v1.1.0: overrideKeywords 매개변수 추가
+- `src/collectors/devto.js` v1.1.0: overrideKeywords 매개변수 추가
+- `src/collectors/arxiv.js` v1.1.0: overrideKeywords 매개변수 추가
+- `src/pipeline.js` v2.0.0: 카테고리별 파이프라인 실행, SOURCE_COLLECTORS 매핑, options.category 지원
+- `src/store/storage.js` v1.1.0: getLatestCuration(category) 카테고리 필터 지원
+- `src/processor/scorer.js` v2.0.0: SOURCE_TRUST/ENGAGEMENT_BASELINE에 coindesk, seekingalpha, marketwatch 추가, scoreArticles(articles, keywords) 외부 키워드 매개변수 지원
+- `src/web/routes.js` v2.0.0: /?category=tech 쿼리 파라미터, POST /api/keywords 카테고리별 지원, POST /api/refresh?category= 지원
+- `src/web/views/index.ejs` v2.0.0: 카테고리 탭 UI (전체/AI기술/코인/미국주식), 소스 라벨 매핑, 카테고리 배지
+- `src/web/views/header.ejs`: 소스별 색상 스타일 6종 추가 (lobsters, devto, arxiv, coindesk, seekingalpha, marketwatch), 탭 스타일
+- `src/web/views/settings.ejs` v2.0.0: 카테고리별 키워드 설정 UI
+- `src/notifier/telegram.js` v2.0.0: 카테고리별 수집 결과 표시
+- `public/js/main.js` v2.0.0: addKeyword(category), saveKeywords(category) 카테고리별 지원
+- `package.json`: rss-parser 의존성 추가, 버전 1.2.0 → 2.0.0
+
 ## 2026-02-09: 스코어링 소스 다양성 개선
 - `src/processor/scorer.js` v1.3.0: Engagement 정규화 + 소스 다양성 보장
   - 소스별 인기 기준선(ENGAGEMENT_BASELINE) 도입, 상대적 인기도로 점수 산출

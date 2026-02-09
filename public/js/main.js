@@ -1,5 +1,5 @@
-// main.js - 프론트엔드 JS
-// 버전: 1.1.0 | 수정일: 2026-02-09
+// main.js - 프론트엔드 JS (카테고리 지원)
+// 버전: 2.0.0 | 수정일: 2026-02-09
 
 /**
  * 요약 텍스트 펼침/접기 토글
@@ -15,30 +15,33 @@ function toggleSummary(idx) {
 }
 
 /**
- * 키워드 입력 필드 Enter 키 지원
+ * 키워드 입력 필드 Enter 키 지원 (카테고리별)
  */
 document.addEventListener('DOMContentLoaded', function() {
-  var input = document.getElementById('keywordInput');
-  if (input) {
+  // 모든 키워드 입력 필드에 Enter 이벤트 바인딩
+  var inputs = document.querySelectorAll('[id^="keywordInput-"]');
+  inputs.forEach(function(input) {
+    var catId = input.id.replace('keywordInput-', '');
     input.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
-        addKeyword();
+        addKeyword(catId);
       }
     });
-  }
+  });
 });
 
 /**
- * 키워드 추가
+ * 키워드 추가 (카테고리별)
  */
-function addKeyword() {
-  var input = document.getElementById('keywordInput');
+function addKeyword(category) {
+  var input = document.getElementById('keywordInput-' + category);
+  if (!input) return;
   var keyword = input.value.trim();
   if (!keyword) return;
 
   // 중복 검사
-  var tags = document.getElementById('keywordTags');
+  var tags = document.getElementById('keywordTags-' + category);
   var existing = tags.querySelectorAll('.keyword-tag');
   for (var i = 0; i < existing.length; i++) {
     if (existing[i].getAttribute('data-keyword') === keyword) {
@@ -65,20 +68,17 @@ function removeKeyword(btn) {
 }
 
 /**
- * 키워드 저장
+ * 키워드 저장 (카테고리별)
  */
-async function saveKeywords() {
-  var btn = document.getElementById('saveKeywordsBtn');
-  var statusEl = document.getElementById('saveStatus');
-  var tags = document.querySelectorAll('#keywordTags .keyword-tag');
+async function saveKeywords(category) {
+  var statusEl = document.getElementById('saveStatus-' + category);
+  var tags = document.querySelectorAll('#keywordTags-' + category + ' .keyword-tag');
 
   var keywords = [];
   tags.forEach(function(tag) {
     keywords.push(tag.getAttribute('data-keyword'));
   });
 
-  btn.disabled = true;
-  btn.classList.add('opacity-50');
   statusEl.textContent = '저장 중...';
   statusEl.className = 'text-sm text-gray-500';
 
@@ -86,7 +86,7 @@ async function saveKeywords() {
     var response = await fetch('/api/keywords', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ keywords: keywords })
+      body: JSON.stringify({ category: category, keywords: keywords })
     });
     var result = await response.json();
 
@@ -100,9 +100,6 @@ async function saveKeywords() {
   } catch (error) {
     statusEl.textContent = '저장 실패: ' + error.message;
     statusEl.className = 'text-sm text-red-600';
-  } finally {
-    btn.disabled = false;
-    btn.classList.remove('opacity-50');
   }
 }
 
@@ -115,6 +112,11 @@ async function refreshPipeline() {
   var statusMsg = document.getElementById('statusMsg');
   var statusContent = document.getElementById('statusContent');
 
+  // 현재 카테고리 탭 감지
+  var params = new URLSearchParams(window.location.search);
+  var category = params.get('category') || '';
+  var apiUrl = category ? '/api/refresh?category=' + category : '/api/refresh';
+
   // 버튼 비활성화 + 스피너
   btn.disabled = true;
   btn.classList.add('opacity-50');
@@ -126,7 +128,7 @@ async function refreshPipeline() {
   statusContent.textContent = '큐레이션을 수집하고 있습니다... 잠시 기다려주세요.';
 
   try {
-    var response = await fetch('/api/refresh', { method: 'POST' });
+    var response = await fetch(apiUrl, { method: 'POST' });
     var result = await response.json();
 
     if (result.success) {

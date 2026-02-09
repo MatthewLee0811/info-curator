@@ -1,7 +1,8 @@
 ## 0. 프로젝트 아키텍처
 - **시스템**: AI 키워드 기반 정보 큐레이션 (수집 → 점수화 → GPT 요약 → 웹 대시보드 + 텔레그램 알림)
 - **스택**: Node.js, Express, EJS, Tailwind(CDN), node-cron
-- **수집 소스 (5개 활성)**: HN, Lobste.rs, Dev.to, ArXiv, Bluesky / 비활성: Reddit (pipeline.js 주석 처리)
+- **카테고리**: tech(AI/기술), crypto(코인), stocks(미국주식) — 카테고리별 키워드+소스 분리
+- **수집 소스 (8개)**: HN, Lobste.rs, Dev.to, ArXiv, Bluesky, CoinDesk(RSS), SeekingAlpha(RSS), MarketWatch(RSS) / 비활성: Reddit
 - **진입점**: `src/pipeline.js` (오케스트레이션), `src/index.js` (서버+cron), `config/default.json` (설정)
 - 상세 파일 구조 및 소스별 설정은 `PROJECT_NOTES.md` 참조
 

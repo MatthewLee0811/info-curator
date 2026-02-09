@@ -1,5 +1,5 @@
-// scorer.js - 교차검증 + 점수화 모듈
-// 버전: 1.3.0 | 수정일: 2026-02-09
+// scorer.js - 교차검증 + 점수화 모듈 (카테고리 지원, 인기글 모드)
+// 버전: 2.1.0 | 수정일: 2026-02-09
 const logger = require('../utils/logger');
 const config = require('../config');
 
@@ -10,7 +10,17 @@ const SOURCE_TRUST = {
   lobsters: 17,  // 초대제 커뮤니티, 기술 콘텐츠 품질 높음
   devto: 13,     // 개발자 커뮤니티, 품질 편차 있음
   arxiv: 19,     // 학술 논문 프리프린트, 신뢰도 최상위
-  bluesky: 15    // SNS, 사용자 의견/토론 중심
+  bluesky: 15,   // SNS, 사용자 의견/토론 중심
+  coindesk: 17,      // 코인 전문 미디어
+  cointelegraph: 16, // 코인 뉴스 대형 매체
+  theblock: 18,      // 코인 심층 분석 매체
+  decrypt: 16,       // 코인 뉴스 매체
+  seekingalpha: 16,  // 주식 분석 전문 미디어
+  marketwatch: 16,   // 금융 뉴스 미디어
+  yahoofinance: 15,  // 종합 금융 뉴스
+  cnbc: 17,          // 대형 금융 뉴스 방송
+  coingecko: 18,     // CoinGecko 트렌딩 (시장 데이터 기반, 신뢰도 높음)
+  defillama: 19      // DeFi Llama 온체인 데이터 (객관적 TVL 데이터)
 };
 
 // 서브레딧별 신뢰도 보정
@@ -29,7 +39,17 @@ const ENGAGEMENT_BASELINE = {
   lobsters: { points: 20, comments: 15 },
   devto: { points: 80, comments: 20 },
   arxiv: { points: 0, comments: 0 },
-  bluesky: { points: 50, comments: 20 }
+  bluesky: { points: 50, comments: 20 },
+  coindesk: { points: 0, comments: 0 },      // RSS: engagement 없음, 기본 10점
+  cointelegraph: { points: 0, comments: 0 }, // RSS: engagement 없음, 기본 10점
+  theblock: { points: 0, comments: 0 },      // RSS: engagement 없음, 기본 10점
+  decrypt: { points: 0, comments: 0 },       // RSS: engagement 없음, 기본 10점
+  seekingalpha: { points: 0, comments: 0 },  // RSS: engagement 없음, 기본 10점
+  marketwatch: { points: 0, comments: 0 },   // RSS: engagement 없음, 기본 10점
+  yahoofinance: { points: 0, comments: 0 },  // RSS: engagement 없음, 기본 10점
+  cnbc: { points: 0, comments: 0 },          // RSS: engagement 없음, 기본 10점
+  coingecko: { points: 100, comments: 0 },  // 트렌딩 순위 기반
+  defillama: { points: 100, comments: 0 }   // TVL 변동폭 기반
 };
 
 /**
@@ -40,8 +60,9 @@ function calcEngagementScore(article) {
   const points = article.points || article.score || 0;
   const comments = article.numComments || 0;
 
-  // ArXiv는 engagement 개념이 없으므로 기본 10점 부여
-  if (article.source === 'arxiv') return 10;
+  // ArXiv/RSS 소스는 engagement 개념이 없으므로 기본 10점 부여
+  const noEngagementSources = ['arxiv', 'coindesk', 'cointelegraph', 'theblock', 'decrypt', 'seekingalpha', 'marketwatch', 'yahoofinance', 'cnbc'];
+  if (noEngagementSources.includes(article.source)) return 10;
 
   const baseline = ENGAGEMENT_BASELINE[article.source] || { points: 100, comments: 50 };
 
@@ -58,13 +79,19 @@ function calcEngagementScore(article) {
 /**
  * 키워드 관련도 점수 (20점 만점)
  * 제목+본문에서 키워드 매칭 빈도
+ * @param {Object} article - 기사 객체
+ * @param {Array} [keywords] - 외부 키워드 (카테고리별 실행 시)
  */
-function calcKeywordScore(article) {
-  const keywords = config.keywords;
+function calcKeywordScore(article, keywords) {
+  const kws = keywords || config.keywords;
+
+  // 인기글 모드: 키워드가 없으면 모든 기사가 관련 있으므로 기본 10점
+  if (!kws || kws.length === 0) return 10;
+
   const text = `${article.title} ${article.selftext || ''}`.toLowerCase();
 
   let matchCount = 0;
-  for (const keyword of keywords) {
+  for (const keyword of kws) {
     const regex = new RegExp(keyword.toLowerCase(), 'gi');
     const matches = text.match(regex);
     if (matches) {
@@ -148,20 +175,29 @@ function extractSignificantWords(title) {
 /**
  * 전체 점수화 파이프라인 실행
  * @param {Array} articles - 수집된 기사 배열
+ * @param {Array} [keywords] - 외부 키워드 (카테고리별 실행 시)
+ * @param {number} [categoryThreshold] - 카테고리별 임계값 (설정 시 전역값 대신 사용)
  * @returns {Array} 점수가 부여되고 필터링된 기사 배열 (점수 내림차순)
  */
-function scoreArticles(articles) {
+function scoreArticles(articles, keywords, categoryThreshold) {
   if (!articles || articles.length === 0) {
     logger.warn('[scorer] 점수화할 기사가 없습니다');
     return [];
   }
 
-  const { threshold, maxArticles } = config.scoring;
+  const { threshold: globalThreshold, maxArticles } = config.scoring;
+  const baseThreshold = categoryThreshold || globalThreshold;
+
+  // 인기글 모드 (키워드 없음): 키워드 점수 차원이 무의미하므로 임계값 하향
+  const effectiveThreshold = (!keywords || keywords.length === 0)
+    ? Math.round(baseThreshold * 0.5)
+    : baseThreshold;
+
   const crossScores = calcCrossValidationScores(articles);
 
   const scored = articles.map(article => {
     const engagement = calcEngagementScore(article);
-    const keyword = calcKeywordScore(article);
+    const keyword = calcKeywordScore(article, keywords);
     const trust = calcTrustScore(article);
     const cross = crossScores.get(article.id) || 0;
     const totalScore = Math.round(engagement + keyword + trust + cross);
@@ -180,7 +216,7 @@ function scoreArticles(articles) {
 
   // 임계값 필터링 + 점수 내림차순 정렬
   const passed = scored
-    .filter(a => a.scores.total >= threshold)
+    .filter(a => a.scores.total >= effectiveThreshold)
     .sort((a, b) => b.scores.total - a.scores.total);
 
   // 소스 다양성 보장: 같은 소스 최대 3건
@@ -196,7 +232,7 @@ function scoreArticles(articles) {
     if (filtered.length >= maxArticles) break;
   }
 
-  logger.info(`[scorer] ${articles.length}건 중 ${filtered.length}건 통과 (임계값: ${threshold})`);
+  logger.info(`[scorer] ${articles.length}건 중 ${filtered.length}건 통과 (임계값: ${effectiveThreshold})`);
   return filtered;
 }
 

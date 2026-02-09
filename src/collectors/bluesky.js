@@ -1,5 +1,5 @@
 // bluesky.js - Bluesky (AT Protocol) 공개 API 수집기 (API 키 불필요)
-// 버전: 1.0.0 | 수정일: 2026-02-09
+// 버전: 1.2.0 | 수정일: 2026-02-09
 const axios = require('axios');
 const logger = require('../utils/logger');
 const config = require('../config');
@@ -17,12 +17,19 @@ function delay(ms) {
 
 /**
  * Bluesky에서 키워드 기반 게시물 수집
+ * @param {Array} [overrideKeywords] - 외부 키워드 (카테고리별 실행 시)
  * @returns {Array} 수집된 게시물 배열
  */
-async function collectBluesky() {
-  const keywords = config.keywords;
+async function collectBluesky(overrideKeywords) {
+  const keywords = overrideKeywords || config.keywords;
   const { limit, sort } = config.bluesky;
   const allArticles = [];
+
+  // 키워드 없으면 검색 불가 (검색 API 특성상 쿼리 필수)
+  if (!keywords || keywords.length === 0) {
+    logger.info('[Bluesky] 키워드 없음 → 스킵');
+    return [];
+  }
 
   for (const keyword of keywords) {
     try {

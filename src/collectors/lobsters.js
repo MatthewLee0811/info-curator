@@ -1,5 +1,5 @@
 // lobsters.js - Lobste.rs JSON API 수집기 (API 키 불필요)
-// 버전: 1.0.0 | 수정일: 2026-02-09
+// 버전: 1.2.0 | 수정일: 2026-02-09
 const axios = require('axios');
 const logger = require('../utils/logger');
 const config = require('../config');
@@ -9,10 +9,11 @@ const USER_AGENT = 'info-curator/1.0.0';
 
 /**
  * Lobste.rs에서 최신 게시물 수집 후 키워드 필터링
+ * @param {Array} [overrideKeywords] - 외부 키워드 (카테고리별 실행 시)
  * @returns {Array} 수집된 게시물 배열
  */
-async function collectLobsters() {
-  const keywords = config.keywords;
+async function collectLobsters(overrideKeywords) {
+  const keywords = overrideKeywords || config.keywords;
   const { pages } = config.lobsters;
   const allArticles = [];
 
@@ -26,10 +27,13 @@ async function collectLobsters() {
 
       const stories = response.data || [];
       for (const story of stories) {
-        // 키워드 매칭 필터
-        const text = `${story.title || ''} ${story.description || ''} ${(story.tags || []).join(' ')}`.toLowerCase();
-        const matched = keywords.find(kw => text.includes(kw.toLowerCase()));
-        if (!matched) continue;
+        // 키워드가 있으면 필터링, 없으면 전체 수집
+        let matched = null;
+        if (keywords && keywords.length > 0) {
+          const text = `${story.title || ''} ${story.description || ''} ${(story.tags || []).join(' ')}`.toLowerCase();
+          matched = keywords.find(kw => text.includes(kw.toLowerCase()));
+          if (!matched) continue;
+        }
 
         allArticles.push({
           id: `lobsters_${story.short_id}`,

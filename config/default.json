@@ -1,42 +1,127 @@
 {
-  "keywords": [
-    "AI",
-    "vibe coding",
-    "claude"
-  ],
-  "reddit": {
-    "subreddits": [
-      "artificial",
-      "MachineLearning",
-      "technology",
-      "LocalLLaMA",
-      "ChatGPT",
-      "singularity",
-      "OpenAI",
-      "ClaudeAI",
-      "coding"
-    ],
-    "timeFilter": "day",
-    "limit": 50
+  "categories": {
+    "tech": {
+      "label": "AI / 기술",
+      "keywords": [
+        "AI",
+        "claude"
+      ],
+      "sources": [
+        "hackernews",
+        "lobsters",
+        "devto",
+        "arxiv",
+        "bluesky"
+      ]
+    },
+    "crypto": {
+      "label": "코인",
+      "keywords": [
+        "ink",
+        "nado"
+      ],
+      "threshold": 28,
+      "excludeCoins": [
+        "bitcoin",
+        "ethereum",
+        "bnb",
+        "xrp",
+        "solana",
+        "cardano",
+        "dogecoin",
+        "tron",
+        "avalanche",
+        "polkadot"
+      ],
+      "sources": [
+        "coingecko",
+        "defillama",
+        "coindesk",
+        "cointelegraph",
+        "theblock",
+        "decrypt"
+      ]
+    },
+    "stocks": {
+      "label": "미국주식",
+      "keywords": [],
+      "sources": [
+        "seekingalpha",
+        "marketwatch",
+        "yahoofinance",
+        "cnbc"
+      ]
+    }
   },
-  "hackernews": {
-    "tags": "(story,show_hn)",
-    "hitsPerPage": 50
-  },
-  "lobsters": {
-    "pages": 3
-  },
-  "devto": {
-    "perPage": 30,
-    "tags": ["machinelearning", "ai", "llm", "openai", "programming"]
-  },
-  "arxiv": {
-    "categories": ["cs.AI", "cs.CL", "cs.LG", "cs.CV"],
-    "maxResults": 20
-  },
-  "bluesky": {
-    "limit": 30,
-    "sort": "top"
+  "sources": {
+    "hackernews": {
+      "tags": "(story,show_hn)",
+      "hitsPerPage": 50
+    },
+    "lobsters": {
+      "pages": 3
+    },
+    "devto": {
+      "perPage": 30,
+      "tags": [
+        "machinelearning",
+        "ai",
+        "llm",
+        "openai",
+        "programming"
+      ]
+    },
+    "arxiv": {
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.LG",
+        "cs.CV"
+      ],
+      "maxResults": 20
+    },
+    "bluesky": {
+      "limit": 30,
+      "sort": "top"
+    },
+    "coingecko": {
+      "limit": 15
+    },
+    "defillama": {
+      "limit": 15
+    },
+    "coindesk": {
+      "url": "https://www.coindesk.com/arc/outboundfeeds/rss/",
+      "limit": 30
+    },
+    "cointelegraph": {
+      "url": "https://cointelegraph.com/rss",
+      "limit": 30
+    },
+    "theblock": {
+      "url": "https://www.theblock.co/rss.xml",
+      "limit": 30
+    },
+    "decrypt": {
+      "url": "https://decrypt.co/feed",
+      "limit": 30
+    },
+    "seekingalpha": {
+      "url": "https://seekingalpha.com/feed",
+      "limit": 30
+    },
+    "marketwatch": {
+      "url": "https://feeds.content.dowjones.io/public/rss/mw_topstories",
+      "limit": 30
+    },
+    "yahoofinance": {
+      "url": "https://finance.yahoo.com/rss/topstories",
+      "limit": 30
+    },
+    "cnbc": {
+      "url": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664",
+      "limit": 30
+    }
   },
   "scoring": {
     "threshold": 55,

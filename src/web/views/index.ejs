@@ -1,13 +1,53 @@
 <%- include('header') %>
 
-<% if (curation) { %>
-  <div class="mb-4 flex items-center justify-between">
-    <div>
-      <span class="text-sm text-gray-500">마지막 업데이트: <%= new Date(curation.createdAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }) %></span>
-      <span class="ml-3 text-sm text-gray-500"><%= curation.totalCollected %>건 중 <%= curation.articles.length %>건 엄선</span>
-    </div>
-  </div>
+<!-- 카테고리 탭 + 날짜 네비게이션 | 버전: 2.2.0 | 수정일: 2026-02-09 -->
+<% if (typeof categories !== 'undefined' && categories) { %>
+<div class="flex gap-1 mb-4 border-b">
+  <a href="/<%= typeof currentDate !== 'undefined' && currentDate !== today ? '?date=' + currentDate : '' %>"
+    class="px-4 py-2 text-sm <%= !currentCategory ? 'tab-active' : 'tab-inactive' %>">
+    전체
+  </a>
+  <% Object.keys(categories).forEach(function(catId) { %>
+  <a href="/?category=<%= catId %><%= typeof currentDate !== 'undefined' && currentDate !== today ? '&date=' + currentDate : '' %>"
+    class="px-4 py-2 text-sm <%= currentCategory === catId ? 'tab-active' : 'tab-inactive' %>">
+    <%= categories[catId].label %>
+  </a>
+  <% }); %>
+</div>
+<% } %>
 
+<!-- 날짜 네비게이션 -->
+<% if (typeof currentDate !== 'undefined') { %>
+<div class="flex items-center justify-between mb-4">
+  <div class="flex items-center gap-3">
+    <% if (typeof prevDate !== 'undefined' && prevDate) { %>
+    <a href="/?date=<%= prevDate %><%= currentCategory ? '&category=' + currentCategory : '' %>"
+      class="text-sm text-blue-600 hover:text-blue-800">&larr; <%= prevDate %></a>
+    <% } else { %>
+    <span class="text-sm text-gray-300">&larr;</span>
+    <% } %>
+
+    <span class="text-sm font-semibold text-gray-700">
+      <%= currentDate %><%= currentDate === today ? ' (오늘)' : '' %>
+    </span>
+
+    <% if (typeof nextDate !== 'undefined' && nextDate) { %>
+    <a href="/?date=<%= nextDate %><%= currentCategory ? '&category=' + currentCategory : '' %>"
+      class="text-sm text-blue-600 hover:text-blue-800"><%= nextDate %> &rarr;</a>
+    <% } else if (currentDate !== today) { %>
+    <a href="/<%= currentCategory ? '?category=' + currentCategory : '' %>"
+      class="text-sm text-blue-600 hover:text-blue-800">오늘 &rarr;</a>
+    <% } else { %>
+    <span class="text-sm text-gray-300">&rarr;</span>
+    <% } %>
+  </div>
+  <% if (curation) { %>
+  <span class="text-sm text-gray-500"><%= curation.articles.length %>건</span>
+  <% } %>
+</div>
+<% } %>
+
+<% if (curation && curation.articles.length > 0) { %>
   <% if (curation.weeklySummary) { %>
   <div class="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-xl p-5 mb-6">
     <h2 class="text-lg font-bold text-purple-800 mb-2">이번 주 요약</h2>
@@ -18,8 +58,19 @@
   <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
     <% curation.articles.forEach(function(article, idx) { %>
     <% var scoreClass = article.scores.total >= 70 ? 'score-high' : (article.scores.total >= 50 ? 'score-medium' : 'score-low'); %>
-    <% var sourceLabel = article.source === 'reddit' ? 'Reddit' : 'HN'; %>
-    <% var sourceClass = article.source === 'reddit' ? 'source-reddit' : 'source-hackernews'; %>
+    <%
+      var sourceLabels = { hackernews: 'HN', reddit: 'Reddit', lobsters: 'Lobsters', devto: 'Dev.to', arxiv: 'ArXiv', bluesky: 'Bluesky', coindesk: 'CoinDesk', cointelegraph: 'CoinTelegraph', theblock: 'The Block', decrypt: 'Decrypt', seekingalpha: 'SeekingAlpha', marketwatch: 'MarketWatch', yahoofinance: 'Yahoo Finance', cnbc: 'CNBC', coingecko: 'CoinGecko', defillama: 'DeFi Llama' };
+      var sourceLabel = sourceLabels[article.source] || article.source;
+      var sourceClass = 'source-' + article.source;
+      var catLabel = '';
+      if (typeof categories !== 'undefined' && categories && article.category && categories[article.category]) {
+        catLabel = categories[article.category].label;
+      }
+      var collectedTime = '';
+      if (article.collectedAt) {
+        collectedTime = new Date(article.collectedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit' });
+      }
+    %>
     <div class="bg-white rounded-xl shadow-sm border hover:shadow-md transition p-4 <%= scoreClass %>">
       <div class="flex items-start justify-between gap-2 mb-2">
         <a href="<%= article.url %>" target="_blank" rel="noopener"
@@ -33,8 +84,11 @@
 
       <div class="flex items-center gap-2 mb-3">
         <span class="text-xs text-white px-2 py-0.5 rounded <%= sourceClass %>"><%= sourceLabel %></span>
-        <% if (article.subreddit) { %>
-        <span class="text-xs text-gray-500"><%= article.subreddit %></span>
+        <% if (catLabel && !currentCategory) { %>
+        <span class="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded"><%= catLabel %></span>
+        <% } %>
+        <% if (collectedTime) { %>
+        <span class="text-xs text-gray-400" title="수집 시각"><%= collectedTime %></span>
         <% } %>
         <% if (article.matchedKeyword) { %>
         <span class="text-xs text-gray-400"><%= article.matchedKeyword %></span>
@@ -57,8 +111,8 @@
       <% } %>
 
       <div class="flex items-center gap-3 mt-3 text-xs text-gray-400">
-        <span>👍 <%= article.points || article.score || 0 %></span>
-        <span>💬 <%= article.numComments || 0 %></span>
+        <span><%= article.points || article.score || 0 %></span>
+        <span><%= article.numComments || 0 %></span>
         <% if (article.permalink) { %>
         <a href="<%= article.permalink %>" target="_blank" class="hover:text-blue-500">토론 보기</a>
         <% } %>
@@ -67,6 +121,12 @@
     <% }); %>
   </div>
 
+<% } else if (curation && curation.articles.length === 0) { %>
+  <div class="text-center py-12">
+    <div class="text-4xl mb-3">📋</div>
+    <h2 class="text-lg font-bold text-gray-500 mb-1">해당 카테고리에 수집된 기사가 없습니다</h2>
+    <p class="text-sm text-gray-400">키워드를 조정하거나 다시 가져오기를 시도해 보세요.</p>
+  </div>
 <% } else { %>
   <div class="text-center py-20">
     <div class="text-6xl mb-4">📭</div>

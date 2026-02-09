@@ -1,5 +1,5 @@
 // arxiv.js - ArXiv API 수집기 (API 키 불필요, XML 응답)
-// 버전: 1.0.0 | 수정일: 2026-02-09
+// 버전: 1.2.0 | 수정일: 2026-02-09
 const axios = require('axios');
 const xml2js = require('xml2js');
 const logger = require('../utils/logger');
@@ -62,12 +62,19 @@ async function parseArxivResponse(xmlData) {
 
 /**
  * ArXiv에서 키워드 기반 논문 수집
+ * @param {Array} [overrideKeywords] - 외부 키워드 (카테고리별 실행 시)
  * @returns {Array} 수집된 논문 배열
  */
-async function collectArxiv() {
-  const keywords = config.keywords;
+async function collectArxiv(overrideKeywords) {
+  const keywords = overrideKeywords || config.keywords;
   const { categories, maxResults } = config.arxiv;
   const allArticles = [];
+
+  // 키워드 없으면 검색 불가 (학술 논문은 키워드 기반 검색만 의미 있음)
+  if (!keywords || keywords.length === 0) {
+    logger.info('[ArXiv] 키워드 없음 → 스킵');
+    return [];
+  }
 
   for (const keyword of keywords) {
     try {
