@@ -1,8 +1,9 @@
 // telegram.js - 텔레그램 알림 모듈
-// 버전: 1.0.0 | 수정일: 2026-02-08
+// 버전: 1.1.0 | 수정일: 2026-02-09
 const TelegramBot = require('node-telegram-bot-api');
 const logger = require('../utils/logger');
 const config = require('../config');
+const pkg = require('../../package.json');
 
 let bot = null;
 
@@ -32,9 +33,9 @@ async function sendNotification(collected, selected, includeWeekly = false, erro
   let message;
 
   if (errorMsg) {
-    message = `⚠️ 큐레이션 오류 발생 (${now})\n\n오류: ${errorMsg}\n\n🔗 대시보드: ${siteUrl}`;
+    message = `⚠️ 큐레이션 오류 발생 (${now})\n\n오류: ${errorMsg}\n\n🔗 대시보드: ${siteUrl}\n🏷 v${pkg.version}`;
   } else {
-    message = `📋 새 AI 큐레이션 도착! (${now})\n📊 ${collected}건 수집 → ${selected}건 엄선\n🔗 자세히 보기: ${siteUrl}`;
+    message = `📋 새 AI 큐레이션 도착! (${now})\n📊 ${collected}건 수집 → ${selected}건 엄선\n🔗 자세히 보기: ${siteUrl}\n\n🏷 v${pkg.version}`;
     if (includeWeekly) {
       message += `\n\n📅 이번 주 요약도 함께 확인하세요!\n🔗 주간 요약: ${siteUrl}/weekly`;
     }
