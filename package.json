@@ -1,6 +1,6 @@
 {
   "name": "info-curator",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "키워드 기반 정보 자동 수집/교차검증/요약/번역 큐레이션 시스템",
   "main": "src/index.js",
   "scripts": {

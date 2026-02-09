@@ -20,6 +20,13 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 // JSON 파싱
 app.use(express.json());
 
+// 버전 정보를 모든 뷰에 전달
+const pkg = require('../package.json');
+app.use((req, res, next) => {
+  res.locals.appVersion = pkg.version;
+  next();
+});
+
 // 라우터
 app.use('/', routes);
 
