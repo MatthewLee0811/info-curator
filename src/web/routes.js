@@ -74,7 +74,7 @@ router.post('/api/refresh', async (req, res) => {
       return res.json({ success: false, message: '이미 실행 중입니다.' });
     }
 
-    const category = req.query.category || req.body.category || null;
+    const category = req.query.category || req.body?.category || null;
     logger.info(`[web] 수동 파이프라인 실행 요청${category ? ` (카테고리: ${category})` : ' (전체)'}`);
     const options = category ? { category } : {};
     const result = await runPipeline(options);
