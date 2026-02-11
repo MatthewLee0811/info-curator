@@ -22,6 +22,7 @@
 ## 3. Reporting & Feedback
 - Change report: After modifying code, briefly summarize the file, location, and reason. Include diffs only for large-scale changes.
 - Language: Write all explanations, reports, and comments in Korean. Always include version and modification date.
+- Documentation language: `CLAUDE.md`, `PROJECT_NOTES.md`, and `CHANGELOG.md` must always be written in English.
 
 ## 4. Version & Branch Management
 - Bump `package.json` version on feature changes (patch: bug fix, minor: new feature, major: breaking change).
