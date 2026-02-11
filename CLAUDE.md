@@ -1,34 +1,34 @@
-## 0. 프로젝트 아키텍처
-- **시스템**: AI 키워드 기반 정보 큐레이션 (수집 → 점수화 → GPT 요약 → 웹 대시보드 + 텔레그램 알림)
-- **스택**: Node.js, Express, EJS, Tailwind(CDN), node-cron
-- **카테고리**: tech(AI/기술), crypto(코인), stocks(미국주식) — 카테고리별 키워드+소스 분리
-- **수집 소스 (8개)**: HN, Lobste.rs, Dev.to, ArXiv, Bluesky, CoinDesk(RSS), SeekingAlpha(RSS), MarketWatch(RSS) / 비활성: Reddit
-- **진입점**: `src/pipeline.js` (오케스트레이션), `src/index.js` (서버+cron), `config/default.json` (설정)
-- 상세 파일 구조 및 소스별 설정은 `PROJECT_NOTES.md` 참조
+## 0. Project Architecture
+- **System**: AI keyword-based information curation (Collect → Score → GPT Summary → Web Dashboard + Telegram Notification)
+- **Stack**: Node.js, Express, EJS, Tailwind(CDN), node-cron
+- **Categories**: tech(AI/Tech), crypto(Coin), stocks(US Stocks) — separate keywords+sources per category
+- **Sources (8)**: HN, Lobste.rs, Dev.to, ArXiv, Bluesky, CoinDesk(RSS), SeekingAlpha(RSS), MarketWatch(RSS) / Disabled: Reddit
+- **Entry points**: `src/pipeline.js` (orchestration), `src/index.js` (server+cron), `config/default.json` (config)
+- See `PROJECT_NOTES.md` for detailed file structure and per-source settings
 
-## 1. 작업 범위 및 권한 규정
-- 최소 권한 접근: 요청한 기능 구현에 직접적으로 필요한 파일만 읽고 수정한다. 프로젝트 전체를 임의로 탐색하지 마라.
-- 기존 코드 보존: 새로운 기능을 추가하거나 수정할 때, 기존의 로직이나 다른 기능을 절대 건드리지 마라. 영향도가 있다면 반드시 사전에 보고하라.
-- 자율 작업 금지: 사용자가 명시적으로 지시하지 않은 작업을 '개선'이라는 명목으로 임의 수행하지 마라.
-- 확인 절차: 지시사항이 모호하거나, 예상치 못한 사이드 이펙트가 우려될 경우 작업을 중단하고 사용자에게 질문하여 확인받아라.
+## 1. Scope & Permission Rules
+- Least privilege: Only read and modify files directly required to implement the requested feature. Do not explore the project arbitrarily.
+- Preserve existing code: When adding or modifying features, never touch existing logic or other features. If there is potential impact, report it beforehand.
+- No autonomous work: Do not perform unrequested tasks under the guise of "improvement".
+- Confirmation: If instructions are ambiguous or unexpected side effects are a concern, stop and ask the user for clarification.
 
-## 2. 코드 품질 및 보안
-- 데이터는 각 플랫폼의 공식 API나 SDK를 우선적으로 사용해줘.
-- 보안 우선: 소스 코드에 API Key, 비밀번호, 인증 토큰 등을 직접 노출(Hard-coding)하지 마라.
-- API Key와 Secret은 반드시 .env 파일에서 process.env를 통해 불러와야 하며, .env 파일은 절대 수정하거나 읽지 마라.
-- 성능 및 간결성: 코드는 누구나 이해할 수 있도록 최대한 간결하고 가독성 있게 작성하라. (KISS)
-- 파괴적인 변경(Breaking Changes)을 엄격히 금지한다.
+## 2. Code Quality & Security
+- Prefer official APIs or SDKs for each platform when collecting data.
+- Security first: Never hard-code API keys, passwords, or auth tokens in source code.
+- API keys and secrets must be loaded from .env via process.env. Never read or modify the .env file.
+- Keep code simple and readable (KISS).
+- Breaking changes are strictly prohibited.
 
-## 3. 보고 및 피드백
-- 수정 이력 보고: 코드 수정 후 수정한 파일, 위치, 이유를 간결하게 요약하라. 대규모 변경일 때만 Diff를 포함하라.
-- 언어 설정: 모든 설명, 보고, 주석은 한국어로 작성하고 버전과 수정 날짜를 항상 적어라.
+## 3. Reporting & Feedback
+- Change report: After modifying code, briefly summarize the file, location, and reason. Include diffs only for large-scale changes.
+- Language: Write all explanations, reports, and comments in Korean. Always include version and modification date.
 
-## 4. 버전 및 브랜치 관리
-- 기능 추가 시 `package.json` 버전을 올려라 (patch: 버그 수정, minor: 기능 추가, major: 호환성 깨짐).
-- 기본 브랜치: `master`. 기능 개발은 별도 브랜치에서 작업 후 머지한다.
-- 빌드: `npm run build` / 테스트: `npm test`
+## 4. Version & Branch Management
+- Bump `package.json` version on feature changes (patch: bug fix, minor: new feature, major: breaking change).
+- Default branch: `master`. Develop features on separate branches, then merge.
+- Build: `npm run build` / Test: `npm test`
 
-## 5. 프로젝트 노트
-- 작업 시작 전 `PROJECT_NOTES.md`를 읽고 프로젝트 구조를 파악하라.
-- `CHANGELOG.md`는 최근 3~5개 항목만 확인하라 (전체를 읽을 필요 없음).
-- 기능 추가/수정 작업 완료 후 `CHANGELOG.md`에 작업 이력을 추가하라.
+## 5. Project Notes
+- Read `PROJECT_NOTES.md` before starting work to understand the project structure.
+- Only review the latest 3–5 entries in `CHANGELOG.md` (no need to read the entire file).
+- After completing feature additions or modifications, add an entry to `CHANGELOG.md`.
